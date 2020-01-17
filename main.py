@@ -22,9 +22,12 @@ components = []
 
 for index, row in data.iterrows():
     if row['Nome'] == 'Processo':
+        componentName = row['Área de texto 1'].split('/', 1)[0]
+        componentName = ''.join(e for e in componentName if e.isalnum())
+
         components.append({
             'id': row['Id'],
-            'name': row['Área de texto 1'],
+            'name': componentName,
             'childs': [],
             'importedOn': [],
         })
@@ -35,18 +38,31 @@ for index, row in data.iterrows():
         components[originId]['childs'].append(components[destinyId]['name'])
         components[destinyId]['importedOn'].append(components[originId]['name'])
 
+comentsBlock = ''
+print(components)
+
 for component in components:
     childList = ''
     for child in component['childs']:
-        childList += ' * - {}\n'.format(child)
+        childList += ' * - [{}](#{})\n'.format(child, child.lower())
     
     importedOnList = ''
     for importedOn in component['importedOn']:
-        importedOnList += ' * - {}\n'.format(importedOn)
+        importedOnList += ' * - [{}](#{})\n'.format(importedOn, importedOn.lower())
 
-    s = """
-------------
-# Componente: {}
+    
+
+    example = """\
+Exemplo:
+```js
+<{}/>
+```
+    """.format(component['name'])
+    print(example)
+    
+    comment = """
+---------------------
+Componente: {}
 
 /**
  * Filhos:
@@ -55,4 +71,13 @@ for component in components:
 {} */
     """.format(component['name'], childList, importedOnList)
 
-    print(s)
+    comentsBlock += comment
+
+
+    myFile = open('docs/{}.md'.format(component['name']), 'w')
+    myFile.write(example)
+    myFile.close()
+
+myFile = open('list.md', 'w')
+myFile.write(comentsBlock)
+myFile.close()
